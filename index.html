@@ -502,6 +502,29 @@ document.getElementById('stageFrame').addEventListener('touchend', e=>{
   if(Math.abs(diff)>60){ diff>0?next():prev(); }
 }, {passive:true});
 
+/* two-finger trackpad swipe (horizontal wheel delta) */
+let wheelLock = false;
+let swipeAccumX = 0;
+let swipeResetTimer = null;
+window.addEventListener('wheel', (e)=>{
+  if(isMobile()) return;
+  // ignore scroll-wheel-only mice (they rarely send deltaX) and ignore vertical-dominant gestures
+  if(Math.abs(e.deltaX) < Math.abs(e.deltaY)) return;
+  if(wheelLock) return;
+
+  swipeAccumX += e.deltaX;
+  clearTimeout(swipeResetTimer);
+  swipeResetTimer = setTimeout(()=> swipeAccumX = 0, 200);
+
+  const THRESHOLD = 55;
+  if(Math.abs(swipeAccumX) > THRESHOLD){
+    wheelLock = true;
+    swipeAccumX > 0 ? next() : prev();
+    swipeAccumX = 0;
+    setTimeout(()=> wheelLock = false, 750);
+  }
+}, { passive:true });
+
 /* present (fullscreen) */
 document.getElementById('presentBtn').addEventListener('click', (e)=>{
   e.stopPropagation();
