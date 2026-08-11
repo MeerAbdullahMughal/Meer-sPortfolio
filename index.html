@@ -1274,45 +1274,77 @@ aiChatClose.addEventListener('click', () => {
   aiChat.classList.remove('open');
 
 });
-
-function sendTestMessage(){
+async function sendTestMessage(){
 
   const text = aiChatInput.value.trim();
 
   if(!text) return;
 
+  // Show user's message
   const userMessage = document.createElement('div');
 
   userMessage.className = 'ai-message user';
-
   userMessage.textContent = text;
 
-  document
-    .getElementById('aiChatMessages')
-    .appendChild(userMessage);
+  const messages = document.getElementById('aiChatMessages');
 
+  messages.appendChild(userMessage);
+
+  // Clear input
   aiChatInput.value = '';
 
+  // Scroll down
+  messages.scrollTop = messages.scrollHeight;
+
+  // Show temporary thinking message
   const botMessage = document.createElement('div');
 
   botMessage.className = 'ai-message bot';
+  botMessage.textContent = 'Thinking... 🧠';
 
-  botMessage.textContent =
-    "I'm connected to the UI. My RAG brain comes next. 🧠";
+  messages.appendChild(botMessage);
 
-  setTimeout(() => {
+  messages.scrollTop = messages.scrollHeight;
 
-    document
-      .getElementById('aiChatMessages')
-      .appendChild(botMessage);
+  try {
 
-    const messages =
-      document.getElementById('aiChatMessages');
+    // Send question to FastAPI
+    const response = await fetch('http://127.0.0.1:8000/chat', {
 
-    messages.scrollTop = messages.scrollHeight;
+      method: 'POST',
 
-  }, 500);
+      headers: {
+        'Content-Type': 'application/json'
+      },
 
+      body: JSON.stringify({
+        question: text
+      })
+
+    });
+
+    // Check for HTTP errors
+    if(!response.ok){
+      throw new Error(`HTTP error: ${response.status}`);
+    }
+
+    // Convert response to JSON
+    const data = await response.json();
+
+    // Replace "Thinking..." with actual AI answer
+    botMessage.textContent = data.answer;
+
+  } catch(error) {
+
+    console.error('Chatbot error:', error);
+
+    botMessage.textContent =
+      'Sorry, I could not connect to my AI backend.';
+
+  }
+
+  // Scroll down after response
+  messages.scrollTop = messages.scrollHeight;
 }
 
 aiChatSend.addEventListener('click', sendTestMessage);
