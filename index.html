@@ -759,6 +759,9 @@ form{display:flex;flex-direction:column;gap:10px;}
   }
 
 }
+.ai-message {
+    white-space: pre-wrap;
+}
 </style>
 </head>
 <body>
@@ -1274,6 +1277,9 @@ aiChatClose.addEventListener('click', () => {
   aiChat.classList.remove('open');
 
 });
+
+const threadId = crypto.randomUUID();
+
 async function sendTestMessage(){
 
   const text = aiChatInput.value.trim();
@@ -1306,6 +1312,8 @@ async function sendTestMessage(){
 
   messages.scrollTop = messages.scrollHeight;
 
+
+
   try {
 
     // Send question to FastAPI
@@ -1317,10 +1325,10 @@ async function sendTestMessage(){
         'Content-Type': 'application/json'
       },
 
-      body: JSON.stringify({
-        question: text
-      })
-
+    body: JSON.stringify({
+        question: text,
+        thread_id: threadId
+    })
     });
 
     // Check for HTTP errors
